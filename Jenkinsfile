@@ -3,7 +3,7 @@ pipeline {
     //only keep logs for 5 runs
     buildDiscarder(logRotator(numToKeepStr: '5')) 
     //declarative does a checkout automatically, set this to disable
-    skipDefaultCheckout()
+    
   }
   agent {
     //we need Docker Compose in many of the sh steps
@@ -13,13 +13,32 @@ pipeline {
   environment {
     env='test'
   }
+  parameters {
+        choice(name: 'Branch', choices: Nirmit)
+  }
   stages {
+
     stage("Prepare Build Environment") {
       steps {
-        //checkout code for all stages - sharing agent across stages
-        checkout scm
-        //load docker image saved in agent - this speeds up the job almost 10x
-        sh 'mvnw clean package'
+        scripts {
+          sh 'mvnw clean package'
+        }
+      }
+    }
+    
+    stage("Publish Build Environment") {
+      steps {
+        scripts {
+           echo "rtPublish"
+        }
+      }
+    }
+    
+    stage("AWS Deploy") {
+      steps {
+        scripts {
+           echo "aws cloudformation cftemplate.json"
+        }
       }
     }
   }
